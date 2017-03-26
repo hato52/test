@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>golang sample</title>
+</head>
+<body>
+	<h1>{{.Title}}</h1>
+	<div>
+		<h3>Items</h3>
+		{{range .List}}
+		<p>{{.}}</p>
+		{{end}}
+	</div>
+</body>
+</html>
