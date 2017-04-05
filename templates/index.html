@@ -1,16 +1,30 @@
+{{define "index"}}
 <!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8" />
-	<title>golang sample</title>
+	<title>My TODO List</title>
 </head>
 <body>
-	<h1>{{.Title}}</h1>
+	<h1>TODO</h1>
+
+	<form method="post">
+		<table>
+			<tr>
+				<th TODO></th>
+			</tr>
+			<tr>
+				<td><input type="text" name="todo" size="60" /></td>
+				<td><input type="submit" value="POST" />
+			</tr>
+		</table>
+	</form>
+
+	<hr>
 	<div>
 		<h3>Items</h3>
-		{{range .List}}
-		<p>{{.}}</p>
-		{{end}}
+		<li>hoge</li>
 	</div>
 </body>
 </html>
+{{end}}

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"io"
 	"database/sql"
 	"net/http"
 	"html/template"
@@ -9,43 +9,20 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func main() {
-	e := echo.New()
+type Template struct {
+	templates *template.Template
+}
 
-	tmp, err1 := template.ParseFiles("templates/index.html")
-	if err1 != nil {
-		panic(err1)
-	}
+func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
+}
 
-	err2 := tmp.Execute(w, struct {
-		Title string
-		id int
-		List []string
-	}{
-		Title: "Golang Template and Database Sample",
-		List: []string{"hoge","fuga", "foo"},
-	})
-	if err2 != nil {
-		panic(err2)
-	}
-
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello World!")
-	})
-
-	/*e.GET("/users/:id", func (c echo.Context) error {
-		jsonMap := map[string] string {
-			"name": "hoge",
-			"id": "10",
-		}
-		return c.JSON(http.StatusOK, jsonMap)
-	})*/
-
+/*func List(c echo.Context) error {
 	db, err := sql.Open("mysql", "root:natori11@/todo")
+	defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}
-	defer db.Close();
 
 	rows, err := db.Query("SELECT * FROM todo")
 	defer rows.Close()
@@ -59,8 +36,52 @@ func main() {
 		if err := rows.Scan(&id, &name); err != nil {
 			panic(err.Error())
 		}
-		fmt.Println(id, name)
 	}
+
+	return c.Render(http.StatusOK, "index", "hoge")
+}*/
+
+func Entry(c echo.Context) error {
+
+	todo := make(map[int]string)
+
+	db, err := sql.Open("mysql", "root:natori11@/todo")
+	defer db.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	rows, err := db.Query("SELECT * FROM todo")
+	defer rows.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	for rows.Next() {
+		var id int
+		var contents string
+		if err := rows.Scan(&id, &contents); err != nil {
+			panic(err.Error())
+		}
+		todo[id] = contents
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func main() {
+
+	t := &Template {
+		templates: template.Must(template.ParseGlob("templates/*.html")),
+	}
+
+	e := echo.New()
+	e.Renderer = t
+
+	e.GET("/", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "index", "")
+	})
+	e.POST("/", Entry)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
